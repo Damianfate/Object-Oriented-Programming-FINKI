@@ -1,0 +1,78 @@
+#include "iostream"
+#include "cstring"
+
+using namespace std;
+
+struct Laptop{
+    char firmi[100];
+    double goleminaMonitor;
+    bool touch;
+    int cena;
+};
+struct ITStore{
+    char ime[100];
+    char lokacija[100];
+    Laptop niza[100];
+    int brLaptop;
+};
+void print(const ITStore &store){
+    cout<<store.ime<<" "<<store.lokacija<<endl;
+    for (int i = 0; i < store.brLaptop; ++i) {
+        cout<<store.niza[i].firmi<<" "<<store.niza[i].goleminaMonitor<<" "<<store.niza[i].cena<<endl;
+    }
+}
+void najeftina_ponuda( ITStore *stores, int n){
+    int mincena=-1;
+    int minindeks=-1;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < stores[i].brLaptop; ++j) {
+            if(stores[i].niza[j].touch){
+                if(mincena==-1||stores[i].niza[j].cena<mincena){
+                    mincena=stores[i].niza[j].cena;
+                    minindeks=i;
+                }
+            }
+        }
+
+    }
+    if (minindeks != -1) {
+        cout << "Najeftina ponuda ima prodavnicata: "<<endl;
+        cout<< stores[minindeks].ime << " "
+             << stores[minindeks].lokacija <<endl;
+        cout<<"Najniskata cena iznesuva: "<< mincena << endl;
+    } else {
+        cout << "Nema laptop so touch opcija." << endl;
+    }
+}
+
+int main() {
+    ITStore s[100];
+    int n;
+    scanf("%d",&n); //broj na IT prodavnici
+
+    //vnesuvanje na prodavnicite edna po edna, zaedno so raspolozlivite laptopvi vo niv
+    for (int i = 0; i < n; ++i) {
+        cin>>s[i].ime;
+        cin>>s[i].lokacija;
+        cin>>s[i].brLaptop;
+        for (int j = 0; j < s[i].brLaptop; ++j) {
+            cin>>s[i].niza[j].firmi;
+            cin>>s[i].niza[j].goleminaMonitor;
+            cin>>s[i].niza[j].touch;
+            cin>>s[i].niza[j].cena;
+        }
+    }
+
+
+    //pecatenje na site prodavnici
+
+    for (int i = 0; i < n; ++i) {
+        print(s[i]);
+    }
+
+
+    //povik na glavnata metoda
+    najeftina_ponuda(s, n);
+
+    return 0;
+}//
