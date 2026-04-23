@@ -1,0 +1,220 @@
+#include <iostream>
+#include <cstring>
+#include <stdexcept>
+
+using namespace std;
+
+class InvalidCodeFormatException : public exception {
+public:
+    string kod;
+
+    InvalidCodeFormatException(string k) : kod(k) {
+    }
+    void print(){
+        cout << "The code " << kod
+             << " is invalid doctor code format. THE CODE MUST BE 8 CHARACTERS LONG AND CANNOT CONTAIN COMMA." << endl;
+    }
+};
+
+class Doctor {
+protected:
+    string ime;
+    string prezime;
+    double plata;
+    string kod;
+public:
+    Doctor(string ime = "", string prezime = "", double plata = 0, string kod = "") {
+        if (kod.length() != 8 || kod.find(",")!=string::npos) {
+            throw InvalidCodeFormatException(kod);
+        } else {
+            this->ime = ime;
+            this->plata = plata;
+            this->prezime = prezime;
+            this->kod = kod;
+        }
+    }
+
+    virtual float calculateSalary()const = 0;
+
+    virtual void print() = 0;
+};
+
+class GeneralDoctor : public Doctor {
+private:
+    int pacient;
+public:
+    GeneralDoctor(string ime = "", string prezime = "",  string kod = "", int pacient = 0) : Doctor(
+            ime, prezime, 45000, kod) {
+        this->pacient = pacient;
+    }
+    float calculateSalary()const{
+        int dodatok=(pacient/10)*3000;
+        return (plata+dodatok)*0.93;
+    }
+        void print() {
+        cout << "General Doctor: " << ime << " " << prezime << " CODE:" << kod << " Salary: " << calculateSalary()
+             << endl;
+    }
+};
+
+class Specialist : public Doctor {
+private:
+    string spec;
+    int intervencii;
+    int iskustvo;
+public:
+    Specialist(string ime = "", string prezime = "", string kod = "", string spec = "",int intervencii=0,
+               int iskustvo = 0)
+            : Doctor(ime, prezime, 55000, kod) {
+        this->spec = spec;
+        this->intervencii=intervencii;
+        this->iskustvo = iskustvo;
+    }
+
+    float calculateSalary() const{
+        return (plata + (intervencii * 85) + (plata * iskustvo * 0.05)) * 0.93;
+    }
+        void print() {
+        cout << "Specialist: " << ime << " " << prezime << " CODE:" << kod<<" "<<spec<< " Salary: " << calculateSalary()
+             << endl;
+    }
+};
+void findDoctorsPercentage(Doctor **doctors, int n){
+    float spec=0,gen=0,valid=0;
+    for (int i = 0; i < n; ++i) {
+        if(doctors[i]!= nullptr){
+            valid++;
+            if(dynamic_cast<GeneralDoctor*>(doctors[i])){
+                gen+=1;
+            } else if(dynamic_cast<Specialist*>(doctors[i])){
+                spec+=1;
+            }
+        }
+
+    }
+    cout << spec * 100.00 / valid << "% of the doctors are specialists and " <<gen * 100.00 / valid<< "% are general doctors." << endl;
+}
+
+int main() {
+    int testCase, n;
+    string name, surname, specialty, code;
+    int numberOfPatients, yearsOfExperience, numberOfInterventions;
+    cin >> testCase;
+
+    if (testCase == 1) {
+        cout << "TESTING GENERAL DOCTOR CLASS" << endl;
+        Doctor *d = new GeneralDoctor("John", "Smith", "236XY@2B", 120);
+        Doctor *d1 = new GeneralDoctor("Marco", "Brown", "345X!Y2B", 120);
+        Doctor *d2 = new GeneralDoctor("Emily", "Johnson", "ABCD123@", 230);
+        d->print();
+        d1->print();
+        d2->print();
+
+        cout << "GENERAL DOCTOR CLASS OK!" << endl;
+    } else if (testCase == 2) {
+        cout << "TESTING SPECIALIST DOCTOR CLASS" << endl;
+        Doctor *d = new Specialist("Beth", "Davis", "96Tr$$33", "Cardiologist", 45, 5);
+        Doctor *d1 = new Specialist("William", "Wilson", "785#Qy2B", "Pulmonologist", 50, 7);
+        Doctor *d2 = new Specialist("Micheal", "Rosen", "7896YZ$s", "Radiologist", 41, 10);
+        d->print();
+        d1->print();
+        d2->print();
+        cout << "SPECIALIST DOCTOR CLASS OK!" << endl;
+    } else if (testCase == 3) {
+        cout << "TESTING EXCEPTION HANDLING" << endl;
+        try{
+            Doctor *d = new GeneralDoctor("John", "Smith", "23Y@2B", 120);
+            d->print();
+        }
+        catch(InvalidCodeFormatException k1){
+            k1.print();
+        }
+        cout << "EXCEPTION HANDLING OK!" << endl;
+    } else if (testCase == 4) {
+        cout << "TESTING EXCEPTION HANDLING" << endl;
+
+        try{
+            Doctor *d = new Specialist("Beth", "Davis", "9,R$$334", "Cardiologist", 45, 5);
+            d->print();
+        }
+        catch(InvalidCodeFormatException k2){
+            k2.print();
+        }
+        cout << "EXCEPTION HANDLING OK!" << endl;
+    } else if (testCase == 5) {
+        cout << "TESTING EXCEPTION HANDLING" << endl;
+
+        try{
+            Doctor *d = new Specialist("Beth", "Davis", "9,R$$334", "Cardiologist", 45, 5);
+            d->print();
+
+        }
+        catch(InvalidCodeFormatException k3){
+            k3.print();
+        }
+        try{
+            Doctor *d1 = new Specialist("William", "Wilson", "785#Qy2B", "Pulmonologist", 50, 7);
+            d1->print();
+        }
+        catch(InvalidCodeFormatException k4){
+            k4.print();
+        }
+        try{
+            Doctor *d2 = new Specialist("Beth", "Davis", "96Tr,", "Cardiologist", 45, 5);
+            d2->print();
+        }
+        catch(InvalidCodeFormatException k5){
+            k5.print();
+        }
+
+
+        cout << "EXCEPTION HANDLING OK!" << endl;
+    } else {
+        cout << "INTEGRATION TEST AND TESTING GLOBAL FUNCTION!" << endl;
+        cin >> n;
+        Doctor **doctors = new Doctor *[n];
+        for (int i = 0; i < n; i++) {
+            int t;
+            cin >> t;
+            cin >> name >> surname;
+            cin >> code;
+            if (t == 1) // General doctor
+            {
+                cin >> numberOfPatients;
+                try{
+                    doctors[i] = new GeneralDoctor(name, surname, code, numberOfPatients);
+                }
+                catch (InvalidCodeFormatException k7){
+                    k7.print();
+                    doctors[i]= nullptr;
+
+                }
+
+
+            } else // Specialist
+            {
+                cin >> specialty;
+                cin >> numberOfInterventions >> yearsOfExperience;
+                try{
+                    doctors[i] = new Specialist(name, surname, code, specialty, numberOfInterventions, yearsOfExperience);
+                }
+                catch (InvalidCodeFormatException k8){
+                    k8.print();
+                    doctors[i]= nullptr;
+                }
+            }
+        }
+        cout << "LIST OF ALL DOCTORS: " << endl;
+        for (int i = 0; i < n; i++) {
+            if(doctors[i]!= nullptr){
+                doctors[i]->print();
+            }
+        }
+        findDoctorsPercentage(doctors, n);
+        for (int i = 0; i < n; i++) {
+            delete doctors[i];
+        }
+        delete[] doctors;
+    }
+    return 0;
+}
