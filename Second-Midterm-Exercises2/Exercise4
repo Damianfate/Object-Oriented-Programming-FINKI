@@ -1,0 +1,167 @@
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+//Your code here
+
+class Museum{
+protected:
+    string ime;
+    string grad;
+    double cena;
+    int casovi;
+public:
+    Museum(const string ime="", const string grad="", double cena=0, int casovi=0){
+        this->ime=ime;
+        this->grad=grad;
+        this->cena=cena;
+        this->casovi=casovi;
+    }
+    int getCasovu(){
+        return casovi;
+    }
+    virtual void printDetail()=0;
+    virtual double calculateTicketCost()=0;
+};
+class ScientificMuseum:public Museum{
+private:
+    bool interakcija;
+    int prezentacii;
+public:
+    ScientificMuseum(const string ime="", const string grad="", double cena=0, int casovi=0, bool interakcija=false,int prezentacii=0)
+    : Museum(ime, grad, cena, casovi){
+        this->interakcija=interakcija;
+        this->prezentacii=prezentacii;
+    }
+    double calculateTicketCost(){
+        double cost=cena;
+        if(interakcija){
+            cost+=cost*12/100;
+        }
+        cost+=prezentacii*6;
+        return cost;
+    }
+    void printDetail(){
+        cout<<ime<<" - (Scientific) "<<grad<<" "<<prezentacii<<" "<<calculateTicketCost()<<endl;
+    }
+};
+
+class ArtMuseum:public Museum{
+private:
+    bool amateri;
+    int original;
+public:
+    ArtMuseum(const string ime="", const string grad="", double cena=0, int casovi=0, bool amateri=false,int original=0)
+            : Museum(ime, grad, cena, casovi){
+        this->amateri=amateri;
+        this->original=original;
+    }
+    void printDetail(){
+        cout<<ime<<" - (Art) "<<grad<<" "<<amateri<<" "<<calculateTicketCost()<<endl;
+    }
+    double calculateTicketCost(){
+        double cost=cena;
+        if(amateri){
+            cost-=cost*18/100;
+        }
+        cost+=original*3;
+        return cost;
+    }
+};
+int findCheapestScientificMuseum(Museum **m, int n){
+    int index=-1;
+    double min=100000000;
+    for (int i = 0; i < n; ++i) {
+        ScientificMuseum *sm=dynamic_cast<ScientificMuseum*>(m[i]);
+        if(sm!= nullptr){
+            double cost=sm->calculateTicketCost();
+            if(cost<min){
+                min=cost;
+                index=i;
+            }
+            else if(cost==min ){
+                if(index==-1||(m[i]->getCasovu()>m[index]->getCasovu())){
+                    index=i;
+                }
+            }
+        }
+    }
+    return index;
+}
+
+int main() {
+    int n, testCase, type;
+    cin >> testCase >> n;
+    cin.ignore();
+
+    Museum** m = new Museum*[n];
+
+    for (int i = 0; i < n; ++i) {
+        string name;
+        string city;
+        float base_price;
+        int working_hours;
+
+        cin >> type;
+        cin.ignore();
+        getline(cin, name);
+        getline(cin, city);
+        cin >> base_price;
+        cin.ignore();
+        cin >> working_hours;
+        cin.ignore();
+
+        if (type == 1) {
+            bool interactive_shows;
+            int multimedia_pres;
+
+            cin >> interactive_shows >> multimedia_pres;
+            cin.ignore();
+
+            m[i] = new ScientificMuseum(name, city, base_price, working_hours, interactive_shows, multimedia_pres);
+        } else {
+            bool amateur_shows;
+            int original_artwork;
+
+            cin >> amateur_shows >> original_artwork;
+            cin.ignore();
+
+            m[i] = new ArtMuseum(name, city, base_price, working_hours, amateur_shows, original_artwork);
+        }
+    }
+
+    if(testCase == 1){
+        cout << "Abstract and child classes OK" << endl;
+    }
+    else if(testCase == 2){
+        for(int i = 0; i < n; i++){
+            cout << m[i]->calculateTicketCost() << endl;
+        }
+        cout << "calculateTicketCost method OK" << endl;
+    }
+    else if(testCase == 3){
+        for(int i = 0; i < n; i++){
+            m[i]->printDetail();
+        }
+        cout << "printDetail method OK" << endl;
+    }
+    else if(testCase == 4){
+        int cheapest_sci_museum_index = findCheapestScientificMuseum(m, n);
+        if(cheapest_sci_museum_index>=0){
+            m[cheapest_sci_museum_index]->printDetail();
+        }else{
+            cout << "Scientific Museum not found in the array!"<<endl;
+        }
+        cout << "findCheapestOnlineOrder method OK" << endl;
+    }
+
+
+    for (int i = 0; i < n; ++i) {
+        delete m[i];
+    }
+
+    delete[] m;
+
+    return 0;
+}
