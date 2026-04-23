@@ -1,0 +1,177 @@
+#include <iostream>
+#include <cstring>
+#include <fstream>
+
+using namespace std;
+
+
+void wtf() {
+    ofstream fout("input.txt");
+    string line;
+    while (getline(std::cin, line)) {
+        if (line == "----") {
+            break;
+        }
+        fout << line << endl;
+    }
+}
+
+void rff(string path) {
+    ifstream fin(path);
+    string line;
+    while (getline(fin, line)) {
+        cout << line << endl;
+    }
+}
+
+class Product {
+protected:
+    string ime;
+    string kategorija;
+    int cena;
+    int kolicina;
+public:
+    Product(string ime = "", string kategorija = "", int cena = 0, int kolicina = 0) {
+        this->ime = ime;
+        this->kategorija = kategorija;
+        this->cena = cena;
+        this->kolicina = kolicina;
+    }
+
+    int totalPrice() const {
+        return cena * kolicina;
+    }
+    string getKategorija(){
+        return kategorija;
+    }
+    friend ostream &operator<<(ostream &o,const Product &p) {
+        o << p.ime << " (" << p.kategorija << ") " << p.kolicina << " x " << p.cena << " = " << p.totalPrice() << endl;
+        return o;
+    }
+};
+class NoProductFoundException{
+public:
+    string s;
+    NoProductFoundException(string s):s(s){}
+};
+
+class Store {
+protected:
+    Product *niza;
+    int golemina;
+public:
+    Store(const Product *niza = nullptr, int golemina = 0) {
+        this->golemina = golemina;
+        this->niza = new Product[golemina];
+        for (int i = 0; i < golemina; ++i) {
+            this->niza[i] = niza[i];
+        }
+    }
+
+    Store(const Store &s) {
+        this->golemina = s.golemina;
+        this->niza = new Product[s.golemina];
+        for (int i = 0; i < s.golemina; ++i) {
+            this->niza[i] = s.niza[i];
+        }
+    }
+
+    Store &operator=(const Store &s) {
+        if (this != &s) {
+            this->golemina = s.golemina;
+            this->niza = new Product[s.golemina];
+            for (int i = 0; i < s.golemina; ++i) {
+                this->niza[i] = s.niza[i];
+            }
+        }
+        return *this;
+    }
+
+    ~Store() {
+        delete[]niza;
+    }
+
+    Store &operator+=(const Product &p) {
+        Product *tmp = new Product[golemina + 1];
+        for (int i = 0; i < golemina; ++i) {
+            tmp[i] = niza[i];
+        }
+        tmp[golemina] = p;
+        delete[]niza;
+        niza = tmp;
+        golemina++;
+        return *this;
+    }
+
+    friend ostream &operator<<(ostream &o, const Store &s) {
+        for (int i = 0; i < s.golemina; ++i) {
+            o << s.niza[i];
+        }
+        return o;
+    }
+    Store fromCategory(string &category){
+        Store nova;
+        for (int i = 0; i < golemina; ++i) {
+            if(niza[i].getKategorija()==category){
+                nova+=niza[i];
+            }
+        }
+        if(nova.golemina==0){
+            throw NoProductFoundException(category);
+        }
+        return nova;
+    }
+};
+
+
+int main() {
+
+    wtf();
+
+
+    Store s;
+
+    //TODO your code starts here
+    //TODO Read the products from the file and add them in the store `s`
+
+    ifstream fin("input.txt");
+    string ime, kategorija;
+    int cena,kolicina;
+    while(getline(fin, ime)&&getline(fin, kategorija)&&fin>>cena>>kolicina){
+        fin.ignore();
+        Product p(ime,kategorija,cena,kolicina);
+        s+=p;
+    }
+
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE NEXT COMMENT
+
+    string category;
+    cin >> category;
+
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE PREVIOUS COMMENT
+
+    //TODO Save the results in the files output1.txt and output2.txt after this line
+    ofstream fout1("output1.txt");
+    fout1<<s;
+    fout1.close();
+
+    ofstream fout2("output2.txt");
+    try{
+        Store filtered=s.fromCategory(category);
+        fout2<<filtered;
+    } catch (NoProductFoundException&e){
+        fout2.close();
+        cout<<"No products from category "<<e.s<<" were found in the store" << endl;
+    }
+    fout2.close();
+
+    //DO NOT MODIFY THE CODE BELLOW
+
+    cout << "All products:" << endl;
+    rff("output1.txt");
+    cout << "Products from category " << category << ": " << endl;
+    rff("output2.txt");
+
+
+    return 0;
+}
