@@ -1,0 +1,57 @@
+#include<iostream>
+#include <cstring>
+using namespace std;
+
+struct Voz{
+    char relacija[50];
+    int km;
+    int brPatnici;
+};
+struct ZeleznickaStanica{
+    char gradSega[20];
+    Voz niza[20];
+    int brojVozovi;
+};
+
+void najkratkaRelacija(ZeleznickaStanica* zs, int n, char* grad){
+    float minKm=-1;
+    char najRelacija[50]="";
+    for (int i = 0; i < n; ++i) {
+        if(strcmp(zs[i].gradSega,grad)==0){
+            for (int j = 0; j < zs[i].brojVozovi; ++j) {
+                float km=zs[i].niza[j].km;
+                if(minKm==-1||km<=minKm){
+                    minKm=km;
+                    strcpy(najRelacija,zs[i].niza[j].relacija);
+                }
+            }
+        }
+    }
+    if(minKm!=-1){
+        cout<<"Najkratka relacija: "<<najRelacija<<" ("<<minKm<<" km)"<<endl;
+    }
+}
+
+int main(){
+
+    int n;
+    cin>>n; //se cita brojot na zelezlnichki stanici
+
+    ZeleznickaStanica zStanica[100];
+    for (int i=0;i<n;i++){
+        cin>>zStanica[i].gradSega;
+        cin>>zStanica[i].brojVozovi;
+        for (int j = 0; j < zStanica[i].brojVozovi; ++j) {
+            cin>>zStanica[i].niza[j].relacija;
+            cin>>zStanica[i].niza[j].km;
+            cin>>zStanica[i].niza[j].brPatnici;
+        }
+
+    }
+
+    char grad[25];
+    cin>>grad;
+
+    najkratkaRelacija(zStanica,n,grad);
+    return 0;
+}
