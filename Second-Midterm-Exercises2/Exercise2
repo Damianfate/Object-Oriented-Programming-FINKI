@@ -1,0 +1,200 @@
+#include <iostream>
+#include <cstring>
+#include <fstream>
+
+
+using namespace std;
+
+void wtf() {
+    ofstream fout("input.txt");
+    string line;
+    while (getline(std::cin, line)) {
+        if (line == "----") {
+            break;
+        }
+        fout << line << endl;
+    }
+}
+
+void rff(string path) {
+    ifstream fin(path);
+    string line;
+    while (getline(fin, line)) {
+        cout << line << endl;
+    }
+}
+
+
+class Student {
+protected:
+    string index;
+    string ime;
+    string prezime;
+    int poeni;
+public:
+    Student(string index = "", string ime = "", string prezime = "", int poeni = 0) {
+        this->index = index;
+        this->ime = ime;
+        this->prezime = prezime;
+        this->poeni = poeni;
+    }
+
+    friend ostream &operator<<(ostream &o, Student &s) {
+        o << s.index << " " << s.ime << " " << s.prezime << " " << s.poeni << " Grade: " << s.grade()<<endl;
+        return o;
+    }
+
+    string getIndex() const {
+        return index;
+    }
+
+    int grade() const {
+        int ocena = 0;
+        if (poeni < 50) {
+            ocena = 5;
+        } else if (poeni >= 50 && poeni < 60) {
+            ocena = 6;
+        } else if (poeni >= 60 && poeni < 70) {
+            ocena = 7;
+        } else if (poeni >= 70 && poeni < 80) {
+            ocena = 8;
+        } else if (poeni >= 80 && poeni < 90) {
+            ocena = 9;
+        } else ocena = 10;
+        return ocena;
+    }
+};
+
+class StudentFailedException {
+public:
+    string index;
+
+    StudentFailedException(string i = "") : index(i) {}
+};
+
+class Results {
+protected:
+    Student *students;
+    int broj;
+public:
+    Results(Student *students = nullptr, int broj = 0) {
+        this->broj = broj;
+        this->students = new Student[broj];
+        for (int i = 0; i < broj; ++i) {
+            this->students[i] = students[i];
+        }
+    }
+
+    Results(const Results &r) {
+        this->broj = r.broj;
+        this->students = new Student[r.broj];
+        for (int i = 0; i < r.broj; ++i) {
+            this->students[i] = r.students[i];
+        }
+    }
+
+    Results &operator=(const Results &r) {
+        if (this != &r) {
+            this->broj = r.broj;
+            this->students = new Student[r.broj];
+            for (int i = 0; i < r.broj; ++i) {
+                this->students[i] = r.students[i];
+            }
+        }
+        return *this;
+    }
+
+    ~Results() {
+        delete[] students;
+    }
+
+    Results &operator+=(const Student &s) {
+        if (s.grade() == 5) {
+            throw StudentFailedException(s.getIndex());
+        } else {
+            Student *tmp = new Student[broj + 1];
+            for (int i = 0; i < broj; ++i) {
+                tmp[i] = students[i];
+            }
+            tmp[broj] = s;
+            delete[]students;
+            students = tmp;
+            broj++;
+        }
+    }
+
+    friend ostream &operator<<(ostream &s, const Results &r) {
+        for (int i = 0; i < r.broj; ++i) {
+            s << r.students[i];
+        }
+        return s;
+    }
+
+    Results withGrade(int grade) {
+        int golemina=0;
+        Student *tmp = new Student[broj];
+        for (int i = 0; i < broj; ++i) {
+            if (students[i].grade() == grade) {
+                tmp[golemina++] = students[i];
+            }
+        }
+        Results r(tmp, golemina);
+        return r;
+    }
+    int getBroj()const{
+        return broj;
+    }
+};
+
+
+int main() {
+
+    wtf();
+
+    Results results;
+    //TODO your code here
+    //TODO Read the students from the file and add them in `results`
+
+    ifstream fin("input.txt");
+    string index, ime, prezime;
+    int poeni;
+    while (fin>>index>>ime>>prezime>>poeni) {
+        try {
+            Student s(index, ime, prezime, poeni);
+            results += s;
+        } catch (StudentFailedException &e) {
+            cout << "Student with id " << e.index << " failed the course" << endl;
+        }
+    }
+    fin.close();
+
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE NEXT COMMENT
+    int grade;
+    cin >> grade;
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE PREVIOUS COMMENT
+
+    //TODO Save the results in the files output1.txt and output2.txt after this line
+    ofstream fout1("output1.txt");
+    fout1 << results;
+    fout1.close();
+
+    ofstream fout2("output2.txt");
+    Results filtered = results.withGrade(grade);
+    if(filtered.getBroj()==0){
+        fout2<<"None";
+    }
+    fout2 << filtered;
+    fout2.close();
+
+
+
+    //DO NOT MODIFY THE CODE BELLOW
+
+    cout << "All students:" << endl;
+    rff("output1.txt");
+    cout << "Grade report for grade " << grade << ": " << endl;
+    rff("output2.txt");
+
+
+    return 0;
+}
