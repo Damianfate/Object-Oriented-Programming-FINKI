@@ -1,0 +1,229 @@
+#include <iostream>
+#include <cstring>
+#include <fstream>
+
+
+using namespace std;
+
+void wtf() {
+    ofstream fout("vlezna.txt");
+    string line;
+    while (getline(std::cin, line)) {
+        if (line == "----") {
+            break;
+        }
+        fout << line << endl;
+    }
+}
+
+void rff(string path) {
+    ifstream fin(path);
+    string line;
+    while (getline(fin, line)) {
+        cout << line << endl;
+    }
+}
+
+class Song {
+private:
+    string naslov;
+    string avtor;
+    string izveduvac;
+    int traenje;
+public:
+    Song(string naslov = "", string avtor = "", string izveduvac = "", int traenje = 0) {
+        this->naslov = naslov;
+        this->avtor = avtor;
+        this->izveduvac = izveduvac;
+        this->traenje = traenje;
+    }
+
+    void SetNaslov(string n) {
+        this->naslov = n;
+    }
+
+    void SetAvtor(string a) {
+        this->avtor = a;
+    }
+
+    void SetIzveduvac(string i) {
+        this->izveduvac = i;
+    }
+
+    void SetTraenje(int t) {
+        this->traenje = t;
+    }
+
+    string GetNaslov() {
+        return naslov;
+    }
+
+    string GetAvtor() {
+        return avtor;
+    }
+
+    string getIzveduvac() {
+        return izveduvac;
+    }
+
+    int getTraenje() {
+        return traenje;
+    }
+
+    friend istream &operator>>(istream &i, Song &s) {
+        getline(i,s.naslov);
+        getline(i,s.avtor);
+        getline(i,s.izveduvac);
+        i>>s.traenje;
+        i.ignore();
+        return i;
+    }
+
+    void print(ofstream &out) {
+        out << "Song title: " << naslov << ", Author: " << avtor << ", Interpreted by: " << izveduvac << ", " << traenje
+            << " sek.";
+    }
+    bool Isti(const Song&s){
+        return naslov==s.naslov&&avtor==s.avtor&&izveduvac==s.izveduvac&&traenje==s.traenje;
+    }
+};
+
+class Festival {
+private:
+    string ime;
+    string grad;
+    string datum;
+    Song *songs;
+    int n;
+public:
+    Festival(string ime="", string grad="",string datum="",Song *songs= nullptr, int n=0){
+        this->ime=ime;
+        this->grad=grad;
+        this->datum=datum;
+        this->n=n;
+        this->songs=new Song[n];
+        for (int i = 0; i < n; ++i) {
+            this->songs[i]=songs[i];
+        }
+    }
+    Festival(const Festival&f){
+        this->ime=f.ime;
+        this->grad=f.grad;
+        this->datum=f.datum;
+        this->n=f.n;
+        this->songs=new Song[f.n];
+        for (int i = 0; i < f.n; ++i) {
+            this->songs[i]=f.songs[i];
+        }
+    }
+    Festival &operator=(const Festival&f){
+        if(this!=&f){
+            delete[]songs;
+            this->ime=f.ime;
+            this->grad=f.grad;
+            this->datum=f.datum;
+            this->n=f.n;
+            this->songs=new Song[f.n];
+            for (int i = 0; i < f.n; ++i) {
+                this->songs[i]=f.songs[i];
+            }
+        }
+        return *this;
+    }
+    ~Festival(){
+        delete[]songs;
+    }
+    Festival &operator-=(Song&s){
+        if(n==0){
+            cout<<"Trying to delete from an empty list!"<<endl;
+            return *this;
+        }
+//        int count=0;
+//        for (int i = 0; i < n; ++i) {
+//            if(!songs[i].Isti(s)){
+//                count++;
+//            }
+//        }
+//        Song *tmp=new Song[count];
+//        for (int i = 0; i < n; ++i) {
+//            if(!songs[i].Isti(s)){
+//                tmp[i]=songs[i];
+//            }
+//        }
+//        delete [] songs;
+//        songs=tmp;
+//        n=count;
+        return *this;
+    }
+    void print(ofstream& out){
+        out<<"Festival: "<<ime<<" - "<<grad<<", "<<datum<<endl;
+        for (int i = 0; i < n; ++i) {
+            songs[i].print(out);
+            out<<endl;
+        }
+    }
+    friend istream &operator>>(istream&i, Festival&f){
+        getline(i,f.ime);
+        getline(i,f.grad);
+        getline(i,f.datum);
+        i>>f.n;
+        i.ignore();
+        f.songs=new Song[f.n];
+        for (int j = 0; j < f.n; ++j) {
+            i>>f.songs[j];
+        }
+        return i;
+    }
+    Festival notFromAuthor(string author){
+        Song *filtered=new Song[n];
+        int count=0;
+        for (int i = 0; i < n; ++i) {
+            if(songs[i].GetAvtor()!=author){
+                filtered[count++]=songs[i];
+            }
+        }
+        Festival f(ime,grad,datum,filtered,count);
+        delete[]filtered;
+        return f;
+    }
+};
+
+int main() {
+
+    wtf();
+
+    Festival festival;
+    
+    //TODO your code here
+    //TODO Read the data from the file and store them in `festival`
+    ifstream fin("vlezna.txt");
+    fin>>festival;
+    fin.close();
+    Song s;
+    festival-=s;
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE NEXT COMMENT
+    string author;
+    getline(cin, author);
+    //DO NOT MODIFY THE CODE BETWEEN THIS AND THE PREVIOUS COMMENT
+
+    //TODO Save the results in the files izlezna1.txt and izlezna2.txt after this line
+    ofstream fout1("izlezna1.txt");
+    festival.print(fout1);
+    fout1.close();
+
+    Festival filtered=festival.notFromAuthor(author);
+    ofstream fout2("izlezna2.txt");
+    filtered.print(fout2);
+    fout2.close();
+
+
+    //DO NOT MODIFY THE CODE BELLOW
+
+    cout << "All the data for the festival:" << endl;
+    rff("izlezna1.txt");
+    cout << "Songs NOT from the author " << author << ": " << endl;
+    rff("izlezna2.txt");
+
+
+    return 0;
+}
