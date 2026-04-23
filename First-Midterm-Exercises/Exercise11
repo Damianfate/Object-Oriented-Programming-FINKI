@@ -1,0 +1,139 @@
+#include "iostream"
+#include "cstring"
+
+using namespace std;
+// vashiot kod ovde
+
+class Ucesnik{
+private:
+    char *ime;
+    bool pol;
+    int vozrast;
+public:
+    Ucesnik(char *ime="", bool pol=false, int vozrast=0){
+        this->ime=new char [strlen(ime+1)];
+        strcpy(this->ime,ime);
+        this->pol=pol;
+        this->vozrast=vozrast;
+    }
+    Ucesnik(const Ucesnik&u){
+        this->ime=new char [strlen(u.ime+1)];
+        strcpy(this->ime,u.ime);
+        this->pol=u.pol;
+        this->vozrast=u.vozrast;
+    }
+    Ucesnik operator=(const Ucesnik&u){
+        if(this!=&u){
+            delete [] ime;
+            this->ime=new char [strlen(u.ime+1)];
+            strcpy(this->ime,u.ime);
+            this->pol=u.pol;
+            this->vozrast=u.vozrast;
+        }
+        return *this;
+    }
+    ~Ucesnik(){
+        delete [] ime;
+    }
+    bool operator >(const Ucesnik &u){
+        return this->vozrast>u.vozrast;
+    }
+    friend ostream&operator<<(ostream&o, const Ucesnik&u){
+        o<<u.ime<<endl;
+        if(u.pol){
+            o<<"mashki"<<endl;
+        }
+        else{
+            o<<"zhenski"<<endl;
+        }
+        o<<u.vozrast;
+        return o;
+    }
+    int getVozrast() const{
+        return vozrast;
+    }
+};
+class Maraton{
+private:
+    char lokacija[100];
+    Ucesnik *niza;
+    int brUcesnici;
+public:
+    Maraton(char *lokacija=""){
+        strcpy(this->lokacija,lokacija);
+        this->niza= nullptr;
+        brUcesnici=0;
+    }
+    Maraton(const Maraton&m){
+        strcpy(this->lokacija,m.lokacija);
+        brUcesnici=m.brUcesnici;
+        this->niza=new Ucesnik[m.brUcesnici];
+        for (int i = 0; i < m.brUcesnici; ++i) {
+            this->niza[i]=m.niza[i];
+        }
+    }
+    Maraton operator=(const Maraton&m){
+        if(this!=&m){
+            strcpy(this->lokacija,m.lokacija);
+            brUcesnici=m.brUcesnici;
+            this->niza=new Ucesnik[m.brUcesnici];
+            for (int i = 0; i < m.brUcesnici; ++i) {
+                this->niza[i]=m.niza[i];
+            }
+        }
+        return *this;
+
+    }
+    ~Maraton(){
+        delete [] niza;
+    }
+    Maraton &operator+=(const Ucesnik&u){
+        Ucesnik*tmp=new Ucesnik[brUcesnici+1];
+        for (int i = 0; i < brUcesnici; ++i) {
+            tmp[i]=niza[i];
+        }
+        tmp[brUcesnici]=u;
+        brUcesnici++;
+        delete[]niza;
+        niza=tmp;
+        return *this;
+    }
+    double prosecnoVozrast(){
+        if(brUcesnici==0) return 0;
+        double prosek=0;
+        for (int i = 0; i < brUcesnici; ++i) {
+            prosek+=niza[i].getVozrast();
+        }
+        return prosek/brUcesnici;
+    }
+    void pecatiPomladi(Ucesnik &u){
+        for (int i = 0; i < brUcesnici; ++i) {
+            if(niza[i].getVozrast()<u.getVozrast()){
+                cout<<niza[i]<<endl;
+            }
+        }
+    }
+};
+
+int main() {
+    char ime[100];
+    bool maski;
+    int vozrast, n;
+    cin >> n;
+    char lokacija[100];
+    cin >> lokacija;
+    Maraton m(lokacija);
+    Ucesnik **u = new Ucesnik*[n];
+    for(int i = 0; i < n; ++i) {
+        cin >> ime >> maski >> vozrast;
+        u[i] = new Ucesnik(ime, maski, vozrast);
+        m += *u[i];
+    }
+    m.pecatiPomladi(*u[n - 1]);
+    cout << m.prosecnoVozrast() << endl;
+    for(int i = 0; i < n; ++i) {
+        delete u[i];
+    }
+    delete [] u;
+    return 0;
+}
