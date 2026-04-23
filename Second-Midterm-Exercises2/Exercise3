@@ -1,0 +1,172 @@
+#include <iostream>
+
+using namespace std;
+
+//Your code here
+
+class Library{
+protected:
+    string name;
+    string city;
+    double cena;
+    bool vikend;
+public:
+    Library(string name="", string city="", double cena=0, bool vikend=false){
+        this->name=name;
+        this->city=city;
+        this->cena=cena;
+        this->vikend=vikend;
+    }
+    bool Getvikend()const{
+        return vikend;
+    }
+    virtual void printDetail()=0;
+    virtual double calculateMembershipCardCost()=0;
+};
+class AcademicLibrary:public Library{
+private:
+    bool istrazuvanje;
+    int SpecKolekcii;
+public:
+    AcademicLibrary(string name="", string city="", double cena=0, bool vikend=false,bool istrazuvanje= false,int SpecKolekcii=0 )
+    : Library(name,city,cena,vikend)
+    {
+        this->istrazuvanje=istrazuvanje;
+        this->SpecKolekcii=SpecKolekcii;
+    }
+    double calculateMembershipCardCost(){
+        double cost=cena;
+        if(istrazuvanje){
+            cost+=(cost*24/100);
+        }
+        if(SpecKolekcii!=0){
+            cost+=SpecKolekcii*6;
+        }
+        return cost;
+    }
+    void printDetail(){
+        cout<<name<<" - (Academic) "<<city<<" "<<SpecKolekcii<<" "<<calculateMembershipCardCost()<<endl;
+    }
+};
+class NationalLibrary:public Library{
+private:
+    bool edu;
+    int rakopisi;
+public:
+    NationalLibrary(string name="", string city="", double cena=0, bool vikend=false,bool edu= false,int rakopisi=0 )
+            : Library(name,city,cena,vikend)
+    {
+        this->rakopisi=rakopisi;
+        this->edu=edu;
+    }
+    double calculateMembershipCardCost() {
+        double cost=cena;
+        if(edu){
+            cost-=(cost*7/100);
+        }
+        if(rakopisi!=0){
+            cost+=rakopisi*15;
+        }
+        return cost;
+    }
+    void printDetail(){
+        cout<<name<<" - (National) "<<city<<" "<<rakopisi<<" "<<calculateMembershipCardCost()<<endl;
+    }
+};
+int findMostExpensiveNationalLibrary(Library **l, int n){
+    int index=-1;
+    double maxCost=-1;
+    for (int i = 0; i < n; ++i) {
+        NationalLibrary*nl=dynamic_cast<NationalLibrary*>(l[i]);
+        if(nl!= nullptr){
+            double cost=nl->calculateMembershipCardCost();
+            if(cost>maxCost){
+                maxCost=cost;
+                index=i;
+            }
+            else if(cost==maxCost){
+                if(index==-1||(l[i]->Getvikend() && !l[index]->Getvikend())){
+                    index=i;
+                }
+            }
+        }
+    }
+    return index;
+}
+
+
+int main() {
+    int n, testCase, type;
+    cin >> testCase >> n;
+    cin.ignore();
+
+    Library** m = new Library*[n];
+
+    for (int i = 0; i < n; ++i) {
+        string name;
+        string city;
+        float base_price;
+        bool weekend_working;
+
+        cin >> type;
+        cin.ignore();
+        getline(cin, name);
+        getline(cin, city);
+        cin >> base_price;
+        cin.ignore();
+        cin >> weekend_working;
+        cin.ignore();
+
+        if (type == 1) {
+            bool open_cooperation;
+            int specialized_articles;
+
+            cin >> open_cooperation >> specialized_articles;
+            cin.ignore();
+
+            m[i] = new AcademicLibrary(name, city, base_price, weekend_working, open_cooperation, specialized_articles);
+        } else {
+            bool cultural_program;
+            int national_articles;
+
+            cin >> cultural_program >> national_articles;
+            cin.ignore();
+
+            m[i] = new NationalLibrary(name, city, base_price, weekend_working, cultural_program, national_articles);
+        }
+    }
+
+    if(testCase == 1){
+        cout << "Abstract and child classes OK" << endl;
+    }
+    else if(testCase == 2){
+        for(int i = 0; i < n; i++){
+            cout << m[i]->calculateMembershipCardCost() << endl;
+        }
+        cout << "calculateMembershipCardCost method OK" << endl;
+    }
+    else if(testCase == 3){
+        for(int i = 0; i < n; i++){
+            m[i]->printDetail();
+        }
+        cout << "printDetail method OK" << endl;
+    }
+    else if(testCase == 4){
+        int most_expensive_nat_lib_index = findMostExpensiveNationalLibrary(m, n);
+        if(most_expensive_nat_lib_index>=0){
+            m[most_expensive_nat_lib_index]->printDetail();
+        }else{
+            cout << "National Library not found in the array!"<<endl;
+        }
+        cout << "findMostExpensiveNationalLibrary method OK" << endl;
+    }
+
+
+    for (int i = 0; i < n; ++i) {
+        delete m[i];
+    }
+
+    delete[] m;
+
+    return 0;
+}
